@@ -6,3 +6,28 @@ edition = "2018"
 description = "A graphics basic library use gfx-hal."
 readme = "README.md"
 keywords = ["graphics", "window"]
+
+[features]
+#default = ["serde"]
+
+[dependencies]
+winit = "0.23"
+gfx-hal = "0.6"
+shaderc = "0.6"
+
+[dependencies.serde]
+optional = true
+version = "1.0"
+features = ["derive"]
+
+[target.'cfg(windows)'.dependencies.gfx-backend]
+package = "gfx-backend-dx12"
+version = "0.6"
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies.gfx-backend]
+package = "gfx-backend-metal"
+version = "0.6"
+
+[target.'cfg(all(unix, not(any(target_os = "macos", target_os = "ios"))))'.dependencies.gfx-backend]
+package = "gfx-backend-vulkan"
+version = "0.6"
