@@ -9,7 +9,6 @@ keywords = ["graphic", "math"]
 [features]
 
 [dependencies]
-cgmath = "*"
 
 [dependencies.serde]
 optional = true
