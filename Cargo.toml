@@ -1,8 +1,2 @@
-[package]
-name = "gfx-basic"
-version = "0.1.0"
-authors = ["chee <dev_chee@outlook.com>"]
-edition = "2018"
-description = "A graphics basic library use gfx-hal."
-readme = "README.md"
-keywords = ["graphics", "window"]
+[workspace]
+members = ["gfx-math"]
