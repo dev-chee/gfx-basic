@@ -1,21 +1,16 @@
 macro_rules! impl_vector {
-    ($Vector:ident < $T:ty >, { $($field:ident : $index:expr),+ ; $n:expr }, { $zero:expr, $one:expr }, $abbr:ident) => {
-        /// The short constructor.
-        pub const fn $abbr($($field: $T),+) -> $Vector<$T> {
-            $Vector::<$T>::new($($field),+)
-        }
-
+    ($Vector:ident < $T:ty >, { $($field:ident : $index:expr),+ ; $n:expr }, { $zero:expr, $one:expr }) => {
         impl $Vector<$T> {
-            pub const ZERO:Self = Self::from_value($zero);
+            pub const ZERO:Self = Self { $($field: $zero),+};
 
             /// Construct a new vector, using the provided values.
             pub const fn new($($field: $T),+) -> Self {
                 Self { $($field),+ }
             }
 
-            /// Construct a vector from a single value, replicating it.
-            pub const fn from_value(value: $T) -> Self {
-                Self { $($field: value),+ }
+            /// Peform the approx equality comparison.
+            pub fn approx_eq(self, rhs: Self, epsilon: Self) -> bool {
+                $((self.$field - rhs.$field).abs() < epsilon.$field)&&+
             }
 
             /// Perform the given operation on each field in the vector, returning a new point
@@ -72,7 +67,7 @@ macro_rules! impl_vector {
 
             /// Returns the angle between two vectors in radians.
             pub fn angle(self, rhs: Self) -> Rad<$T> {
-                Rad::<$T>::acos(self.dot(rhs) / (self.magnitude() * rhs.magnitude()))
+                Rad::<$T>::acos(self.dot(rhs) / (self.magnitude2() * rhs.magnitude2()).sqrt())
             }
 
             /// Returns the result of linearly interpolating the vector
@@ -249,6 +244,12 @@ macro_rules! impl_vector {
             }
         }
 
+        impl From<$T> for $Vector<$T> {
+            fn from(value: $T) -> Self {
+                Self { $($field: value),+}
+            }
+        }
+
         impl Into<[$T; $n]> for $Vector<$T> {
             fn into(self) -> [$T; $n] {
                let Self { $($field),+ } = self;
@@ -273,225 +274,5 @@ macro_rules! impl_vector {
     (@sum, $x:expr) => { $x };
     (@sum, $x:expr, $($t:expr),+) => {
         $x + impl_vector!(@sum, $($t),+)
-    };
-}
-
-macro_rules! impl_vector1 {
-    ($T:ty, $one:expr, $zero:expr) => {
-        impl Vector1<$T> {
-            pub const UNIT_X: Self = Self::new($one);
-        }
-
-        impl Into<($T,)> for Vector1<$T> {
-            fn into(self) -> ($T,) {
-                (self.x,)
-            }
-        }
-
-        impl From<($T,)> for Vector1<$T> {
-            fn from(tuple: ($T,)) -> Self {
-                Self::new(tuple.0)
-            }
-        }
-
-        impl<'a> From<&'a ($T,)> for Vector1<$T> {
-            fn from(tuple: &'a ($T,)) -> Self {
-                Self::new(tuple.0)
-            }
-        }
-
-        impl fmt::Debug for Vector1<$T> {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "({:?})", self.x)
-            }
-        }
-
-        impl From<Vector2<$T>> for Vector1<$T> {
-            fn from(v: Vector2<$T>) -> Self {
-                Self::new(v.x)
-            }
-        }
-
-        impl From<Vector3<$T>> for Vector1<$T> {
-            fn from(v: Vector3<$T>) -> Self {
-                Self::new(v.x)
-            }
-        }
-
-        impl From<Vector4<$T>> for Vector1<$T> {
-            fn from(v: Vector4<$T>) -> Self {
-                Self::new(v.x)
-            }
-        }
-    };
-}
-
-macro_rules! impl_vector2 {
-    ($T:ty, $one:expr, $zero:expr) => {
-        impl Vector2<$T> {
-            pub const UNIT_X: Self = Self::new($one, $zero);
-            pub const UNIT_Y: Self = Self::new($zero, $one);
-
-            /// The perpendicular dot product of the vector and `rhs`.
-            pub fn perp_dot(self, rhs: Self) -> $T {
-                (self.x * rhs.y) - (self.y * rhs.x)
-            }
-        }
-
-        impl Into<($T, $T)> for Vector2<$T> {
-            fn into(self) -> ($T, $T) {
-                (self.x, self.y)
-            }
-        }
-
-        impl From<($T, $T)> for Vector2<$T> {
-            fn from(tuple: ($T, $T)) -> Self {
-                Self::new(tuple.0, tuple.1)
-            }
-        }
-
-        impl<'a> From<&'a ($T, $T)> for Vector2<$T> {
-            fn from(tuple: &'a ($T, $T)) -> Self {
-                Self::new(tuple.0, tuple.1)
-            }
-        }
-
-        impl fmt::Debug for Vector2<$T> {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "({:?},{:?})", self.x, self.y)
-            }
-        }
-
-        impl From<Vector1<$T>> for Vector2<$T> {
-            fn from(v: Vector1<$T>) -> Self {
-                Self::new(v.x, $zero)
-            }
-        }
-
-        impl From<Vector3<$T>> for Vector2<$T> {
-            fn from(v: Vector3<$T>) -> Self {
-                Self::new(v.x, v.y)
-            }
-        }
-
-        impl From<Vector4<$T>> for Vector2<$T> {
-            fn from(v: Vector4<$T>) -> Self {
-                Self::new(v.x, v.y)
-            }
-        }
-    };
-}
-
-macro_rules! impl_vector3 {
-    ($T:ty, $one:expr, $zero:expr) => {
-        impl Vector3<$T> {
-            pub const UNIT_X: Self = Self::new($one, $zero, $zero);
-            pub const UNIT_Y: Self = Self::new($zero, $one, $zero);
-            pub const UNIT_Z: Self = Self::new($zero, $zero, $one);
-
-            /// Returns the cross product of the vector and `other`.
-            pub fn cross(self, rhs: Self) -> Self {
-                Self::new(
-                    (self.y * rhs.z) - (self.z * rhs.y),
-                    (self.z * rhs.x) - (self.x * rhs.z),
-                    (self.x * rhs.y) - (self.y * rhs.x),
-                )
-            }
-        }
-
-        impl Into<($T, $T, $T)> for Vector3<$T> {
-            fn into(self) -> ($T, $T, $T) {
-                (self.x, self.y, self.z)
-            }
-        }
-
-        impl From<($T, $T, $T)> for Vector3<$T> {
-            fn from(tuple: ($T, $T, $T)) -> Self {
-                Self::new(tuple.0, tuple.1, tuple.2)
-            }
-        }
-
-        impl<'a> From<&'a ($T, $T, $T)> for Vector3<$T> {
-            fn from(tuple: &'a ($T, $T, $T)) -> Self {
-                Self::new(tuple.0, tuple.1, tuple.2)
-            }
-        }
-
-        impl fmt::Debug for Vector3<$T> {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "({:?},{:?},{:?})", self.x, self.y, self.z)
-            }
-        }
-
-        impl From<Vector1<$T>> for Vector3<$T> {
-            fn from(v: Vector1<$T>) -> Self {
-                Self::new(v.x, $zero, $zero)
-            }
-        }
-
-        impl From<Vector2<$T>> for Vector3<$T> {
-            fn from(v: Vector2<$T>) -> Self {
-                Self::new(v.x, v.y, $zero)
-            }
-        }
-
-        impl From<Vector4<$T>> for Vector3<$T> {
-            fn from(v: Vector4<$T>) -> Self {
-                Self::new(v.x, v.y, v.z)
-            }
-        }
-    };
-}
-
-macro_rules! impl_vector4 {
-    ($T:ty, $one:expr, $zero:expr) => {
-        impl Vector4<$T> {
-            pub const UNIT_X: Self = Self::new($one, $zero, $zero, $zero);
-            pub const UNIT_Y: Self = Self::new($zero, $one, $zero, $zero);
-            pub const UNIT_Z: Self = Self::new($zero, $zero, $one, $zero);
-            pub const UNIT_W: Self = Self::new($zero, $zero, $zero, $one);
-        }
-
-        impl Into<($T, $T, $T, $T)> for Vector4<$T> {
-            fn into(self) -> ($T, $T, $T, $T) {
-                (self.x, self.y, self.z, self.w)
-            }
-        }
-
-        impl From<($T, $T, $T, $T)> for Vector4<$T> {
-            fn from(tuple: ($T, $T, $T, $T)) -> Self {
-                Self::new(tuple.0, tuple.1, tuple.2, tuple.3)
-            }
-        }
-
-        impl<'a> From<&'a ($T, $T, $T, $T)> for Vector4<$T> {
-            fn from(tuple: &'a ($T, $T, $T, $T)) -> Self {
-                Self::new(tuple.0, tuple.1, tuple.2, tuple.3)
-            }
-        }
-
-        impl fmt::Debug for Vector4<$T> {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "({:?},{:?},{:?},{:?})", self.x, self.y, self.z, self.w)
-            }
-        }
-
-        impl From<Vector1<$T>> for Vector4<$T> {
-            fn from(v: Vector1<$T>) -> Self {
-                Self::new(v.x, $zero, $zero, $zero)
-            }
-        }
-
-        impl From<Vector2<$T>> for Vector4<$T> {
-            fn from(v: Vector2<$T>) -> Self {
-                Self::new(v.x, v.y, $zero, $zero)
-            }
-        }
-
-        impl From<Vector3<$T>> for Vector4<$T> {
-            fn from(v: Vector3<$T>) -> Self {
-                Self::new(v.x, v.y, v.z, $zero)
-            }
-        }
     };
 }

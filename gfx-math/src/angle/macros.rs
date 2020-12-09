@@ -26,6 +26,11 @@ macro_rules! impl_angle {
             pub fn lerp(self, rhs: Self, t: $T) -> Self {
                 self + (rhs - self) * t
             }
+
+            /// Peform the approx equality comparison.
+            pub fn approx_eq(self, rhs: Self, epsilon: Self) -> bool {
+                (self.0 - rhs.0).abs() < epsilon.0
+            }
         }
 
         impl ops::Neg for $Angle<$T> {
@@ -168,150 +173,10 @@ macro_rules! impl_angle {
                 $Angle(self * rhs.0)
             }
         }
-    };
-}
 
-macro_rules! impl_rad {
-    ($T:ty) => {
-        impl Rad<$T> {
-            /// Compute the sine of the angle, returning a unitless ratio.
-            pub fn sin(self) -> $T {
-                self.0.sin()
-            }
-
-            /// Compute the cosine of the angle, returning a unitless ratio.
-            pub fn cos(self) -> $T {
-                self.0.cos()
-            }
-
-            /// Compute the tangent of the angle, returning a unitless ratio.
-            pub fn tan(self) -> $T {
-                self.0.tan()
-            }
-
-            /// Compute the sine and cosine of the angle, returning the result as a pair.
-            pub fn sin_cos(self) -> ($T, $T) {
-                self.0.sin_cos()
-            }
-
-            /// Compute the cosecant of the angle.
-            pub fn csc(self) -> $T {
-                self.sin().recip()
-            }
-
-            /// Compute the secant of the angle.
-            pub fn sec(self) -> $T {
-                self.cos().recip()
-            }
-
-            /// Compute the cotangent of the angle.
-            pub fn cot(self) -> $T {
-                self.tan().recip()
-            }
-
-            /// Compute the arcsine of the ratio, returning the resulting angle.
-            pub fn asin(a: $T) -> Self {
-                Self(a.asin())
-            }
-
-            /// Compute the arccosine of the ratio, returning the resulting angle.
-            pub fn acos(a: $T) -> Self {
-                Self(a.acos())
-            }
-
-            /// Compute the arctangent of the ratio, returning the resulting angle.
-            pub fn atan(a: $T) -> Self {
-                Self(a.atan())
-            }
-
-            /// Computes the arctangent of the a / b, returning the resulting angle.
-            pub fn atan2(a: $T, b: $T) -> Self {
-                Self(a.atan2(b))
-            }
-        }
-
-        impl fmt::Debug for Rad<$T> {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "{:?}_rad", self.0)
-            }
-        }
-
-        impl From<Deg<$T>> for Rad<$T> {
-            fn from(deg: Deg<$T>) -> Self {
-                Self(deg.0 * Self::HALF_TURN.0 / Deg::<$T>::HALF_TURN.0)
-            }
-        }
-    };
-}
-
-macro_rules! impl_deg {
-    ($T:ty) => {
-        impl Deg<$T> {
-            /// Compute the sine of the angle, returning a unitless ratio.
-            pub fn sin(self) -> $T {
-                Rad::from(self).sin()
-            }
-
-            /// Compute the cosine of the angle, returning a unitless ratio.
-            pub fn cos(self) -> $T {
-                Rad::from(self).cos()
-            }
-
-            /// Compute the tangent of the angle, returning a unitless ratio.
-            pub fn tan(self) -> $T {
-                Rad::from(self).tan()
-            }
-
-            /// Compute the sine and cosine of the angle, returning the result as a pair.
-            pub fn sin_cos(self) -> ($T, $T) {
-                Rad::from(self).sin_cos()
-            }
-
-            /// Compute the cosecant of the angle.
-            pub fn csc(self) -> $T {
-                Rad::from(self).csc()
-            }
-
-            /// Compute the secant of the angle.
-            pub fn sec(self) -> $T {
-                Rad::from(self).sec()
-            }
-
-            /// Compute the cotangent of the angle.
-            pub fn cot(self) -> $T {
-                Rad::from(self).cot()
-            }
-
-            /// Compute the arcsine of the ratio, returning the resulting angle.
-            pub fn asin(a: $T) -> Self {
-                Rad::<$T>::asin(a).into()
-            }
-
-            /// Compute the arccosine of the ratio, returning the resulting angle.
-            pub fn acos(a: $T) -> Self {
-                Rad::<$T>::acos(a).into()
-            }
-
-            /// Compute the arctangent of the ratio, returning the resulting angle.
-            pub fn atan(a: $T) -> Self {
-                Rad::<$T>::atan(a).into()
-            }
-
-            /// Computes the arctangent of the a / b, returning the resulting angle.
-            pub fn atan2(a: $T, b: $T) -> Self {
-                Rad::<$T>::atan2(a, b).into()
-            }
-        }
-
-        impl fmt::Debug for Deg<$T> {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "{:?}_deg", self.0)
-            }
-        }
-
-        impl From<Rad<$T>> for Deg<$T> {
-            fn from(rad: Rad<$T>) -> Self {
-                Self(rad.0 * Self::HALF_TURN.0 / Rad::<$T>::HALF_TURN.0)
+        impl From<$T> for $Angle<$T> {
+            fn from(value: $T) -> Self {
+                Self(value)
             }
         }
     };

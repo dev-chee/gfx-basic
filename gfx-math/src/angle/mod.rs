@@ -11,101 +11,85 @@ pub use rad::Rad;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    type Deg = super::Deg<f32>;
+    type Rad = super::Rad<f32>;
 
     #[test]
-    fn test_normalize() {
-        assert_eq!(
-            (Rad::<f64>::FULL_TURN * 1.2).normalize(),
-            Rad::<f64>::FULL_TURN * 0.2
-        );
-        assert_eq!(
-            (Rad::<f64>::FULL_TURN * -1.2).normalize(),
-            Rad::<f64>::FULL_TURN * 0.8
-        );
+    fn test_angle() {
+        let epsilon = 1.0e-6_f32;
 
-        assert_eq!(
-            (Rad::<f64>::FULL_TURN * 1.2).normalize_signed(),
-            Rad::<f64>::FULL_TURN * 0.2 - Rad::<f64>::HALF_TURN
-        );
-        assert_eq!(
-            (Rad::<f64>::FULL_TURN * -1.2).normalize_signed(),
-            Rad::<f64>::FULL_TURN * 0.8 - Rad::<f64>::HALF_TURN
-        );
+        assert!(Deg::from(90.0).approx_eq(Deg::QUART_TURN, epsilon.into()));
+        assert!(Rad::from(std::f32::consts::PI * 0.5).approx_eq(Rad::QUART_TURN, epsilon.into()));
 
-        assert_eq!(
-            (Deg::<f64>::FULL_TURN * 1.2).normalize(),
-            Deg::<f64>::FULL_TURN * 0.2
-        );
-        assert_eq!(
-            (Deg::<f64>::FULL_TURN * -1.2).normalize(),
-            Deg::<f64>::FULL_TURN * 0.8
-        );
+        assert!((Deg::QUART_TURN * -7.0)
+            .normalize()
+            .approx_eq(Deg::QUART_TURN, epsilon.into()));
+        assert!((Rad::QUART_TURN * -7.0)
+            .normalize()
+            .approx_eq(Rad::QUART_TURN, epsilon.into()));
 
-        assert_eq!(
-            (Deg::<f64>::FULL_TURN * 1.2).normalize_signed(),
-            Deg::<f64>::FULL_TURN * 0.2 - Deg::<f64>::HALF_TURN
-        );
-        assert_eq!(
-            (Deg::<f64>::FULL_TURN * -1.2).normalize_signed(),
-            Deg::<f64>::FULL_TURN * 0.8 - Deg::<f64>::HALF_TURN
-        );
-    }
+        assert!((Deg::QUART_TURN * -7.0)
+            .normalize_signed()
+            .approx_eq(-Deg::QUART_TURN, epsilon.into()));
+        assert!((Rad::QUART_TURN * -7.0)
+            .normalize_signed()
+            .approx_eq(-Rad::QUART_TURN, epsilon.into()));
 
-    #[test]
-    fn test_lerp() {
-        assert_eq!(
-            Rad::<f64>::ZERO_TURN.lerp(Rad::<f64>::HALF_TURN, 0.5),
-            Rad::<f64>::QUART_TURN
-        );
-        assert_eq!(
-            Rad::<f64>::ZERO_TURN.lerp(-Rad::<f64>::HALF_TURN, 0.5),
-            -Rad::<f64>::QUART_TURN
-        );
+        assert!((Deg::QUART_TURN)
+            .lerp(-Deg::QUART_TURN, 0.5)
+            .approx_eq(Deg::ZERO_TURN, epsilon.into()));
+        assert!((Rad::QUART_TURN)
+            .lerp(-Rad::QUART_TURN, 0.5)
+            .approx_eq(Rad::ZERO_TURN, epsilon.into()));
 
-        assert_eq!(
-            Rad::<f64>::QUART_TURN.lerp(Rad::<f64>::HALF_TURN, 0.5),
-            Rad::<f64>::QUART_TURN * 1.5
-        );
-        assert_eq!(
-            Rad::<f64>::QUART_TURN.lerp(-Rad::<f64>::HALF_TURN, 0.5),
-            -Rad::<f64>::QUART_TURN * 0.5
-        );
+        assert!((Deg::QUART_TURN).approx_eq(-(-Deg::QUART_TURN), epsilon.into()));
+        assert!((Rad::QUART_TURN).approx_eq(-(-Rad::QUART_TURN), epsilon.into()));
 
-        assert_eq!(
-            Deg::<f64>::ZERO_TURN.lerp(Deg::<f64>::HALF_TURN, 0.5),
-            Deg::<f64>::QUART_TURN
-        );
-        assert_eq!(
-            Deg::<f64>::ZERO_TURN.lerp(-Deg::<f64>::HALF_TURN, 0.5),
-            -Deg::<f64>::QUART_TURN
-        );
+        assert!((Deg::QUART_TURN + Deg::QUART_TURN).approx_eq(Deg::HALF_TURN, epsilon.into()));
+        assert!((Rad::QUART_TURN + Rad::QUART_TURN).approx_eq(Rad::HALF_TURN, epsilon.into()));
 
-        assert_eq!(
-            Deg::<f64>::QUART_TURN.lerp(Deg::<f64>::HALF_TURN, 0.5),
-            Deg::<f64>::QUART_TURN * 1.5
-        );
-        assert_eq!(
-            Deg::<f64>::QUART_TURN.lerp(-Deg::<f64>::HALF_TURN, 0.5),
-            -Deg::<f64>::QUART_TURN * 0.5
-        );
-    }
+        assert!((Deg::HALF_TURN - Deg::QUART_TURN).approx_eq(Deg::QUART_TURN, epsilon.into()));
+        assert!((Rad::HALF_TURN - Rad::QUART_TURN).approx_eq(Rad::QUART_TURN, epsilon.into()));
 
-    #[test]
-    fn test_cos_sin() {
-        assert_eq!(Rad(0.0_f32).sin(), 0.0);
-        assert_eq!(Rad::<f32>::QUART_TURN.sin(), 1.0);
+        assert!((Deg::HALF_TURN * 2.0).approx_eq(Deg::FULL_TURN, epsilon.into()));
+        assert!((Rad::HALF_TURN * 2.0).approx_eq(Rad::FULL_TURN, epsilon.into()));
 
-        assert_eq!(Deg::<f32>::QUART_TURN.sin(), 1.0);
-        assert!(Deg::<f32>::HALF_TURN.sin() - 0.0 < 0.0001);
-    }
+        assert!((Deg::FULL_TURN / 2.0).approx_eq(Deg::HALF_TURN, epsilon.into()));
+        assert!((Rad::FULL_TURN / 2.0).approx_eq(Rad::HALF_TURN, epsilon.into()));
 
-    #[test]
-    fn test_impl_from() {
-        assert_eq!(Deg::from(Rad(std::f32::consts::PI / 2.0_f32)), Deg(90_f32));
-        assert_eq!(Deg::from(Rad(std::f64::consts::PI / 2.0_f64)), Deg(90_f64));
+        assert!((Deg::FULL_TURN % Deg::QUART_TURN).approx_eq(Deg::ZERO_TURN, epsilon.into()));
+        assert!((Rad::FULL_TURN % Rad::QUART_TURN).approx_eq(Rad::ZERO_TURN, epsilon.into()));
 
-        assert_eq!(Rad::from(Deg(180.0_f32)), Rad(std::f32::consts::PI));
-        assert_eq!(Rad::from(Deg(180.0_f64)), Rad(std::f64::consts::PI));
+        let mut deg = Deg::from(90.0);
+        let mut rad = Rad::from(std::f32::consts::PI * 0.5);
+        deg += Deg::QUART_TURN;
+        rad += Rad::QUART_TURN;
+
+        assert!(deg.approx_eq(Deg::HALF_TURN, epsilon.into()));
+        assert!(rad.approx_eq(Rad::HALF_TURN, epsilon.into()));
+
+        let mut deg = Deg::from(180.0);
+        let mut rad = Rad::from(std::f32::consts::PI);
+        deg -= Deg::QUART_TURN;
+        rad -= Rad::QUART_TURN;
+
+        assert!(deg.approx_eq(Deg::QUART_TURN, epsilon.into()));
+        assert!(rad.approx_eq(Rad::QUART_TURN, epsilon.into()));
+
+        let mut deg = Deg::from(90.0);
+        let mut rad = Rad::from(std::f32::consts::PI * 0.5);
+        deg *= 2.0;
+        rad *= 2.0;
+
+        assert!(deg.approx_eq(Deg::HALF_TURN, epsilon.into()));
+        assert!(rad.approx_eq(Rad::HALF_TURN, epsilon.into()));
+
+        let mut deg = Deg::from(180.0);
+        let mut rad = Rad::from(std::f32::consts::PI);
+        deg /= 2.0;
+        rad /= 2.0;
+
+        assert!(deg.approx_eq(Deg::QUART_TURN, epsilon.into()));
+        assert!(rad.approx_eq(Rad::QUART_TURN, epsilon.into()));
     }
 }
