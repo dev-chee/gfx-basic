@@ -1,6 +1,6 @@
 use std::{fmt, iter, ops};
 
-use crate::angle::Rad;
+use crate::{angle::Rad, point::Point1};
 
 use super::{Vector2, Vector3, Vector4};
 
@@ -14,18 +14,40 @@ where
     pub x: T,
 }
 
-impl_vector!(Vector1<f32>, { x:0; 1 }, { 0.0, 1.0 });
-impl_vector!(Vector1<f64>, { x:0; 1 }, { 0.0, 1.0 });
+impl_vector!(Vector1<f32>, 1, { x:0 }, 0.0, 1.0);
+impl_vector!(Vector1<f64>, 1, { x:0 }, 0.0, 1.0);
 
 macro_rules! impl_vector1 {
     ($T:ty, $one:expr, $zero:expr) => {
         impl Vector1<$T> {
-            pub const UNIT_X: Self = Self::new($one);
+            pub const UNIT_X: Self = Self { x: $one };
         }
 
-        impl Into<($T,)> for Vector1<$T> {
-            fn into(self) -> ($T,) {
-                (self.x,)
+        impl ops::Add<Point1<$T>> for Vector1<$T> {
+            type Output = Point1<$T>;
+
+            fn add(self, rhs: Point1<$T>) -> Point1<$T> {
+                Point1::<$T>::new(self.x + rhs.x)
+            }
+        }
+
+        impl<'a> ops::Add<&'a Point1<$T>> for Vector1<$T> {
+            type Output = Point1<$T>;
+
+            fn add(self, rhs: &'a Point1<$T>) -> Point1<$T> {
+                Point1::<$T>::new(self.x + rhs.x)
+            }
+        }
+
+        impl From<Point1<$T>> for Vector1<$T> {
+            fn from(value: Point1<$T>) -> Self {
+                value - Point1::<$T>::ORIGIN
+            }
+        }
+
+        impl<'a> From<&'a Point1<$T>> for Vector1<$T> {
+            fn from(value: &'a Point1<$T>) -> Self {
+                *value - Point1::<$T>::ORIGIN
             }
         }
 
@@ -47,8 +69,20 @@ macro_rules! impl_vector1 {
             }
         }
 
+        impl<'a> From<&'a Vector2<$T>> for Vector1<$T> {
+            fn from(v: &'a Vector2<$T>) -> Self {
+                Self::new(v.x)
+            }
+        }
+
         impl From<Vector3<$T>> for Vector1<$T> {
             fn from(v: Vector3<$T>) -> Self {
+                Self::new(v.x)
+            }
+        }
+
+        impl<'a> From<&'a Vector3<$T>> for Vector1<$T> {
+            fn from(v: &'a Vector3<$T>) -> Self {
                 Self::new(v.x)
             }
         }
@@ -56,6 +90,18 @@ macro_rules! impl_vector1 {
         impl From<Vector4<$T>> for Vector1<$T> {
             fn from(v: Vector4<$T>) -> Self {
                 Self::new(v.x)
+            }
+        }
+
+        impl<'a> From<&'a Vector4<$T>> for Vector1<$T> {
+            fn from(v: &'a Vector4<$T>) -> Self {
+                Self::new(v.x)
+            }
+        }
+
+        impl Into<($T,)> for Vector1<$T> {
+            fn into(self) -> ($T,) {
+                (self.x,)
             }
         }
     };

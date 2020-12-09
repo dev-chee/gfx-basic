@@ -15,7 +15,7 @@ pub use vector4::Vector4;
 
 #[cfg(test)]
 mod tests {
-    type Rad = crate::angle::Rad::<f64>;
+    type Rad = crate::angle::Rad<f64>;
     type Vec1 = super::Vector1<f64>;
     type Vec2 = super::Vector2<f64>;
     type Vec3 = super::Vector3<f64>;
@@ -36,6 +36,8 @@ mod tests {
         assert!(Vec3::UNIT_X.dot(Vec3::UNIT_Y) - 0.0 < epsilon);
         assert!(Vec2::from(1.0).magnitude() - (2.0_f64).sqrt() < epsilon);
         assert!(Vec2::new(3.0, 4.0).normalize().magnitude() - 1.0 < epsilon);
-        assert!(Vec2::UNIT_X.project_on(Vec2::UNIT_Y).approx_eq(Vec2::ZERO, epsilon.into()));
+        assert!(Vec2::UNIT_X
+            .project_on(Vec2::UNIT_Y)
+            .approx_eq(Vec2::ZERO, epsilon.into()));
     }
 }

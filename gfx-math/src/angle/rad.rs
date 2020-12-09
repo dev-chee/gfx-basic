@@ -70,8 +70,8 @@ macro_rules! impl_rad {
         }
 
         impl From<Deg<$T>> for Rad<$T> {
-            fn from(deg: Deg<$T>) -> Self {
-                Self(deg.0 * Self::HALF_TURN.0 / Deg::<$T>::HALF_TURN.0)
+            fn from(value: Deg<$T>) -> Self {
+                Self(value.0 * Self::HALF_TURN.0 / Deg::<$T>::HALF_TURN.0)
             }
         }
     };

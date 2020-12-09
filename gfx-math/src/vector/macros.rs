@@ -1,5 +1,5 @@
 macro_rules! impl_vector {
-    ($Vector:ident < $T:ty >, { $($field:ident : $index:expr),+ ; $n:expr }, { $zero:expr, $one:expr }) => {
+    ($Vector:ident < $T:ty >, $n:expr, { $($field:ident : $index:expr),+ }, $zero:expr, $one:expr) => {
         impl $Vector<$T> {
             pub const ZERO:Self = Self { $($field: $zero),+};
 
@@ -24,10 +24,10 @@ macro_rules! impl_vector {
             /// Construct a new vector where each component is the result of
             /// applying the given operation to each pair of components of the
             /// given vectors.
-            pub fn zip<F>(self, v: Self, mut f: F) -> Self
+            pub fn zip<F>(self, rhs: Self, mut f: F) -> Self
                 where F: FnMut($T, $T) -> $T
             {
-                Self::new ($(f(self.$field, v.$field)),+)
+                Self::new ($(f(self.$field, rhs.$field)),+)
             }
 
             /// Vector dot (or inner) product.
@@ -43,16 +43,6 @@ macro_rules! impl_vector {
             /// The distance from the tail to the tip of the vector.
             pub fn magnitude(self) -> $T {
                 self.magnitude2().sqrt()
-            }
-
-            /// Returns the squared distance.
-            pub fn distance2(self, rhs: Self) -> $T {
-                (rhs - self).magnitude2()
-            }
-
-            /// The distance between two values.
-            pub fn distance(self, rhs: Self) -> $T {
-                (rhs - self).magnitude()
             }
 
             /// Returns a vector with the same direction, but with a magnitude of `1`.
@@ -100,6 +90,26 @@ macro_rules! impl_vector {
             }
         }
 
+        impl<'a> ops::Add<&'a Self> for $Vector<$T> {
+            type Output = Self;
+
+            fn add(self, rhs: &'a Self) -> Self {
+                Self::new($(self.$field + rhs.$field),+)
+            }
+        }
+
+        impl ops::AddAssign for $Vector<$T> {
+            fn add_assign(&mut self, rhs: Self) {
+                $(self.$field += rhs.$field);+
+            }
+        }
+
+        impl<'a> ops::AddAssign<&'a Self> for $Vector<$T> {
+            fn add_assign(&mut self, rhs: &'a Self) {
+                $(self.$field += rhs.$field);+
+            }
+        }
+
         impl ops::Sub for $Vector<$T> {
             type Output = Self;
 
@@ -108,11 +118,81 @@ macro_rules! impl_vector {
             }
         }
 
+        impl<'a> ops::Sub<&'a Self> for $Vector<$T> {
+            type Output = Self;
+
+            fn sub(self, rhs: &'a Self) -> Self {
+                Self::new($(self.$field - rhs.$field),+)
+            }
+        }
+
+        impl ops::SubAssign for $Vector<$T> {
+            fn sub_assign(&mut self, rhs: Self) {
+                $(self.$field -= rhs.$field);+
+            }
+        }
+
+        impl<'a> ops::SubAssign<&'a Self> for $Vector<$T> {
+            fn sub_assign(&mut self, rhs: &'a Self) {
+                $(self.$field -= rhs.$field);+
+            }
+        }
+
         impl ops::Mul for $Vector<$T> {
             type Output = Self;
 
             fn mul(self, rhs: Self) -> Self {
                 Self::new($(self.$field * rhs.$field),+)
+            }
+        }
+
+        impl<'a> ops::Mul<&'a Self> for $Vector<$T> {
+            type Output = Self;
+
+            fn mul(self, rhs: &'a Self) -> Self {
+                Self::new($(self.$field * rhs.$field),+)
+            }
+        }
+
+        impl ops::Mul<$T> for $Vector<$T> {
+            type Output = Self;
+
+            fn mul(self, rhs: $T) -> Self {
+                Self::new($(self.$field * rhs),+)
+            }
+        }
+
+        impl ops::Mul<$Vector<$T>> for $T {
+            type Output = $Vector<$T>;
+
+            fn mul(self, rhs: $Vector<$T>) -> $Vector<$T> {
+                $Vector::<$T>::new($(self * rhs.$field),+)
+            }
+        }
+
+        impl<'a> ops::Mul<&'a $Vector<$T>> for $T {
+            type Output = $Vector<$T>;
+
+            fn mul(self, rhs: &'a $Vector<$T>) -> $Vector<$T> {
+                $Vector::<$T>::new($(self * rhs.$field),+)
+            }
+        }
+
+        impl ops::MulAssign for $Vector<$T> {
+            fn mul_assign(&mut self, rhs: Self) {
+                $(self.$field *= rhs.$field);+
+            }
+        }
+
+        impl<'a> ops::MulAssign<&'a Self> for $Vector<$T> {
+            fn mul_assign(&mut self, rhs: &'a Self) {
+                $(self.$field *= rhs.$field);+
+            }
+        }
+
+        impl ops::MulAssign<$T> for $Vector<$T> {
+            fn mul_assign(&mut self, rhs: $T) {
+                $(self.$field *= rhs);+
             }
         }
 
@@ -125,50 +205,12 @@ macro_rules! impl_vector {
             }
         }
 
-        impl ops::Rem for $Vector<$T> {
+        impl<'a> ops::Div<&'a Self> for $Vector<$T> {
             type Output = Self;
 
-            fn rem(self, rhs: Self) -> Self {
-                Self::new($(self.$field % rhs.$field),+)
-            }
-        }
-
-        impl ops::AddAssign for $Vector<$T> {
-            fn add_assign(&mut self, rhs: Self) {
-                $(self.$field += rhs.$field);+
-            }
-        }
-
-        impl ops::SubAssign for $Vector<$T> {
-            fn sub_assign(&mut self, rhs: Self) {
-                $(self.$field -= rhs.$field);+
-            }
-        }
-
-        impl ops::MulAssign for $Vector<$T> {
-            fn mul_assign(&mut self, rhs: Self) {
-                $(self.$field *= rhs.$field);+
-            }
-        }
-
-        impl ops::DivAssign for $Vector<$T> {
-            fn div_assign(&mut self, rhs: Self) {
+            fn div(self, rhs: &'a Self) -> Self {
                 debug_assert!($(rhs.$field != $zero)&&+);
-                $(self.$field /= rhs.$field);+
-            }
-        }
-
-        impl ops::RemAssign for $Vector<$T> {
-            fn rem_assign(&mut self, rhs: Self) {
-                $(self.$field %= rhs.$field);+
-            }
-        }
-
-        impl ops::Mul<$T> for $Vector<$T> {
-            type Output = Self;
-
-            fn mul(self, rhs: $T) -> Self {
-                Self::new($(self.$field * rhs),+)
+                Self::new($(self.$field / rhs.$field),+)
             }
         }
 
@@ -181,6 +223,43 @@ macro_rules! impl_vector {
             }
         }
 
+        impl ops::DivAssign for $Vector<$T> {
+            fn div_assign(&mut self, rhs: Self) {
+                debug_assert!($(rhs.$field != $zero)&&+);
+                $(self.$field /= rhs.$field);+
+            }
+        }
+
+        impl<'a> ops::DivAssign<&'a Self> for $Vector<$T> {
+            fn div_assign(&mut self, rhs: &'a Self) {
+                debug_assert!($(rhs.$field != $zero)&&+);
+                $(self.$field /= rhs.$field);+
+            }
+        }
+
+        impl ops::DivAssign<$T> for $Vector<$T> {
+            fn div_assign(&mut self, rhs: $T) {
+                debug_assert!(rhs != $zero);
+                $(self.$field /= rhs);+
+            }
+        }
+
+        impl ops::Rem for $Vector<$T> {
+            type Output = Self;
+
+            fn rem(self, rhs: Self) -> Self {
+                Self::new($(self.$field % rhs.$field),+)
+            }
+        }
+
+        impl<'a> ops::Rem<&'a Self> for $Vector<$T> {
+            type Output = Self;
+
+            fn rem(self, rhs: &'a Self) -> Self {
+                Self::new($(self.$field % rhs.$field),+)
+            }
+        }
+
         impl ops::Rem<$T> for $Vector<$T> {
             type Output = Self;
 
@@ -189,16 +268,15 @@ macro_rules! impl_vector {
             }
         }
 
-        impl ops::MulAssign<$T> for $Vector<$T> {
-            fn mul_assign(&mut self, rhs: $T) {
-                $(self.$field *= rhs);+
+        impl ops::RemAssign for $Vector<$T> {
+            fn rem_assign(&mut self, rhs: Self) {
+                $(self.$field %= rhs.$field);+
             }
         }
 
-        impl ops::DivAssign<$T> for $Vector<$T> {
-            fn div_assign(&mut self, rhs: $T) {
-                debug_assert!(rhs != $zero);
-                $(self.$field /= rhs);+
+        impl<'a> ops::RemAssign<&'a Self> for $Vector<$T> {
+            fn rem_assign(&mut self, rhs: &'a Self) {
+                $(self.$field %= rhs.$field);+
             }
         }
 
@@ -228,14 +306,6 @@ macro_rules! impl_vector {
             }
         }
 
-        impl ops::Mul<$Vector<$T>> for $T {
-            type Output = $Vector<$T>;
-
-            fn mul(self, rhs: $Vector<$T>) -> $Vector<$T> {
-                $Vector::<$T>::new($(self * rhs.$field),+)
-            }
-        }
-
         impl iter::Sum for $Vector<$T> {
             fn sum<I>(iter: I) -> Self
             where I: Iterator<Item=Self>
@@ -250,13 +320,6 @@ macro_rules! impl_vector {
             }
         }
 
-        impl Into<[$T; $n]> for $Vector<$T> {
-            fn into(self) -> [$T; $n] {
-               let Self { $($field),+ } = self;
-               [$($field),+]
-            }
-        }
-
         impl From<[$T; $n]> for $Vector<$T> {
             fn from(arr: [$T; $n]) -> Self {
                 // We need to use a clone here because we can't pattern match on arrays yet
@@ -268,6 +331,13 @@ macro_rules! impl_vector {
             fn from(arr: &'a [$T; $n]) -> Self {
                 // We need to use a clone here because we can't pattern match on arrays yet
                 Self::new($(arr[$index]),+)
+            }
+        }
+
+        impl Into<[$T; $n]> for $Vector<$T> {
+            fn into(self) -> [$T; $n] {
+               let Self { $($field),+ } = self;
+               [$($field),+]
             }
         }
     };
