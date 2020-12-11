@@ -14,9 +14,6 @@ mod tests {
     fn test_angle() {
         let epsilon = 1.0e-6;
 
-        println!("cf: {:.40}, f: {:.40}", 1.0 / Deg::half_cycle().0, Deg::frequency().0 * 2.0);
-        println!("cq: {:.40}, f: {}", Rad::half_cycle().0 * 0.5, Rad::quat_cycle());
-
         assert!(Deg::from(90.0).approx_eq(Deg::half_cycle() * 0.5, epsilon.into()));
         assert!(Rad::from(std::f64::consts::PI * 0.5)
             .approx_eq(Rad::half_cycle() * 0.5, epsilon.into()));

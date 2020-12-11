@@ -15,7 +15,7 @@ impl Rad {
 
     /// A full frequency (1 / cycle).
     pub const fn frequency() -> Self {
-        Self(0.159154943091895335768883763372514362_f64)
+        Self(0.1591549430918953456082221009637578390539_f64)
     }
 
     /// A double frequency (2 / cycle).
