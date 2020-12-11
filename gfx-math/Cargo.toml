@@ -1,0 +1,11 @@
+[package]
+name = "gfx-math"
+version = "0.1.0"
+authors = ["chee <dev_chee@outlook.com>"]
+edition = "2018"
+description = "A graphics basic math library."
+keywords = ["graphics", "math"]
+
+[dependencies.serde]
+#optional = true
+version = "1.0"
