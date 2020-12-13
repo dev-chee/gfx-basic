@@ -6,6 +6,11 @@ edition = "2018"
 description = "A graphics basic math library."
 keywords = ["graphics", "math"]
 
+[features]
+defaults = ["use_f64"]
+
+use_f64 = []
+
 [dependencies.serde]
-#optional = true
+optional = true
 version = "1.0"
